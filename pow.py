@@ -15,9 +15,6 @@ def calculate_hash(nickname: str = "shuai", nonce: int = 0, target_value: str = 
     start_time = datetime.now()
     print(f"开始时间: {start_time}")
 
-    # 随机数初始值
-    nonce = 0
-
     while True:
         data = f"{nickname}{nonce}"
         hash_data = hashlib.sha256(data.encode()).hexdigest()
@@ -35,8 +32,13 @@ def calculate_hash(nickname: str = "shuai", nonce: int = 0, target_value: str = 
         nonce += 1
 
 if __name__ == "__main__":
+    # 获取用户昵称
+    nickname = None
+    while not nickname:
+        nickname = input("请输入你的昵称: ").strip()
+
     target_values = ["0000", "00000"]
     for target_value in target_values:
-        elapsed, data, hash_data = calculate_hash(target_value=target_value)
+        elapsed, data, hash_data = calculate_hash(nickname = nickname, target_value = target_value)
         print(f"\n{"="*50}\n")
 
