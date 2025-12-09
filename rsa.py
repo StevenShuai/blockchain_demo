@@ -7,7 +7,7 @@ import pow
 def generate_key():
     """
     生成私钥公钥对
-    :return: 私钥，公钥
+    :return: 公钥，私钥
     """
 
     print("开始生成RSA密钥对")
@@ -24,7 +24,7 @@ def sign(msg: str, private_key: str):
     对消息进行签名
     :param msg: 待签名的消息
     :param private_key: 签名的私钥
-    :return: 签名hash
+    :return: 签名数据
     """
 
     if not msg or not private_key:
