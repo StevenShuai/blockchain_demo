@@ -1,10 +1,8 @@
-pragma solidity >=0.8.0;
 
-import "../bbqToken.sol";
+pragma solidity >=0.8.0;
 
 interface IBank {
     function withdraw() external;
-    function withdrawERC20() external;
 }
 
 contract Bank is IBank{
@@ -13,19 +11,6 @@ contract Bank is IBank{
 
     // 记录地址存款数据
     mapping(address => uint) records;
-
-    mapping(address account => uint) BBQBalances;
-
-    uint totalBanalce;
-
-    // bbq代币合约实例
-    BBQToken public token;
-
-    address public bbqAddress;
-
-    // 事件
-    event DepositedERC20(address user, uint256 amount);
-    event WithdrawnERC20(address user, uint256 amount);
 
     // 前三名存款地址
     address[3] topDepositors;
@@ -78,22 +63,6 @@ contract Bank is IBank{
         }
     }
 
-    function getBalance(address account) public view returns(address, uint) {
-        return (msg.sender, token.balanceOf(account));
-    }
-
-    // 用户存入ERO20代币
-    function depositERO20(uint amount) public virtual{
-
-        require(token.transferFrom(msg.sender, address(this), amount), "Transfer failed");
-    
-        // 更新存款记录
-        BBQBalances[msg.sender] += amount;
-        totalBanalce += amount;
-        
-        emit DepositedERC20(msg.sender, amount);
-    }
-
     function withdraw() public virtual {
         address payable sender = payable(msg.sender);
 
@@ -102,16 +71,6 @@ contract Bank is IBank{
         require(balance > 0, "No ETH to withdraw");
 
         sender.transfer(balance);
-    }
-
-    function withdrawERC20() public virtual{
-        uint bankBalance = token.balanceOf(address(this));
-
-        require(token.transferFrom(address(this), msg.sender, bankBalance), "Transfer failed");
-
-        totalBanalce = 0;
-
-        emit WithdrawnERC20(msg.sender, totalBanalce);
     }
 
     function getTopDepositors() public view returns (address[3] memory) {
@@ -124,14 +83,8 @@ contract Bank is IBank{
 }
 
 contract BigBank is Bank{
-
-    modifier valueVerify(uint amount){
-        require(amount>0.001 ether, "Value need more than 0.001 ether");
-        _;
-    }
-
-    modifier ERC20valueVerify(uint amount){
-        require(amount>100, "Value need more than 100");
+    modifier valueVerify(uint value){
+        require(value>0.001 ether, "Value need more than 0.001 ether");
         _;
     }
 
@@ -141,22 +94,8 @@ contract BigBank is Bank{
     }
 
     // 重写 deposit 函数
-    function deposit (address sender, uint amount) public override valueVerify(amount) {
-        super.deposit(sender, amount); 
-    }
-
-    function setToken(address tokenAddress) public onlyOwner {
-        token = BBQToken(tokenAddress);
-        bbqAddress = tokenAddress;
-    }
-
-    // 用户存入ERO20代币
-    function depositERO20(uint256 amount) public override ERC20valueVerify(amount){
-        super.depositERO20(amount);
-    }
-
-    function withdrawERC20() public override onlyOwner{
-        super.withdrawERC20();
+    function deposit (address sender, uint value) public override valueVerify(value) {
+        super.deposit(sender, value); 
     }
 
     function withdraw() public override onlyOwner{
@@ -189,9 +128,5 @@ contract Admin{
 
     function withdraw(IBank bank) public onlyOwner{
         bank.withdraw();
-    }
-
-    function withdrawERC20(IBank bank) public onlyOwner{
-        bank.withdrawERC20();
     }
 }
